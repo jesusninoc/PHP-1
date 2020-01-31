@@ -1,0 +1,128 @@
+```POWERSHELL
+Clear-Host
+
+    Write-Host "                                         " -NoNewline;Write-Host "¿Qué quieres hacer?" -ForegroundColor Green
+    Write-Host " "
+    Write-Host "                 " -NoNewline; Write-Host " Presione '1' para borrar cola de la impresora" -ForegroundColor Yellow
+    Write-Host "                 " -NoNewline;Write-Host " Presione '2' para realizar una conexion ssh" -ForegroundColor Yellow
+    Write-Host "                 " -NoNewline;Write-Host " Presione '3' para crear regla de firewall" -ForegroundColor Yellow
+    Write-Host "                 " -NoNewline;Write-Host " Presione otra tecla para salir" -ForegroundColor Red
+    Write-Host " "
+
+    Start-Sleep -Milliseconds 150
+$opcion= Read-Host "Introduzca un valor"
+if($opcion -eq 1){
+    $web= iwr ("http://localhost/P001/insert.php?enviar=print")
+    $datos= ($web.AllElements | Where Class -eq “lol” | %{$_.innerText})
+    if($datos.TrimEnd() -eq "10"){
+        foreach($impresora in Get-Printer){ 
+        foreach ($cola in (Get-PrintJob -PrinterName $impresora.Name)){
+            if ($cola.size -gt $datos.TrimEnd()+"Kb"){
+                if($cola.UserName -eq "administrador"){
+                    Remove-PrintJob -ID $cola.id -PrinterName "Brother Color Leg Type1 Class Driver"
+                }
+            }
+            else{}
+          }
+       }
+       Get-PrintJob "Brother Color Leg Type1 Class Driver"
+   }
+}
+elseif($opcion -eq 2){
+        $web= iwr ("http://localhost/P001/insert.php?enviar=connection")
+        $ip= ($web.AllElements | Where Class -eq “lol” | %{$_.innerText})
+            $user= Read-Host "USER"
+            $ip = $ip.TrimEnd()
+            #ping $ip
+            ssh $user@$ip
+            }
+elseif($opcion -eq 3){
+        $web= iwr ("http://localhost/P001/insert.php?enviar=firewall")
+        $puerto= ($web.AllElements | Where Class -eq “lol” | %{$_.innerText})
+            ## Crear la regla de firewall:
+            $puerto= $puerto.TrimEnd()
+            New-NetFirewallRule -DisplayName bloqueo -Action Block -Direction Inbound -Enabled True -Protocol UDP -LocalPort $puerto
+            }
+else {quit}
+```
+```PHP
+<!DOCTYPE html>
+<html>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<title>P001</title>
+</head>
+
+<body>
+	<?php
+	
+		$enviar = "";	
+		$enviar = htmlspecialchars($_GET['enviar']); 
+		$mensaje = "Correcto";
+		$resultado = "";
+		// Base de datos
+		$var = "ini/datos.ini";
+		$base = parse_ini_file($var);		
+		$php = new PDO($base["baseDeDatos"],$base["usuario"],$base["password"]);
+		//Imprimir
+		if($enviar == "print")
+		{
+			$resultado = "";
+			$con = "";
+			$registros = "";
+			$resultado = "";
+
+			$con = $php->prepare("SELECT Doc from print where id='1';");
+			$con->execute();
+			$registros = $con->fetch(PDO::FETCH_NUM);	
+			$resultado = $registros[0];			
+		}
+		//Ping
+		elseif ($enviar == "connection") {
+			$resultado = "";
+			$con = "";
+			$registros = "";
+			$resultado = "";
+
+			$con = $php->prepare("SELECT ip from ip where id='2';");
+			$con->execute();
+			$registros = $con->fetch(PDO::FETCH_NUM);	
+			$resultado = $registros[0];			
+		}
+		//Firewall
+		elseif ($enviar == "firewall")
+		{
+			$resultado = "";
+			$con = "";
+			$registros = "";
+			$resultado = "";
+
+			$con = $php->prepare("SELECT port from firewall where id='1';");
+			$con->execute();
+			$registros = $con->fetch(PDO::FETCH_NUM);	
+			$resultado = $registros[0];			
+			
+		}
+		else {
+			$mensaje = "Ejecute print, connection o firewall";
+		}
+	?>
+		<h1 class="lol">
+			<?php 
+			echo "$resultado";
+			 ?>
+			 	
+		</h1>
+		<h2>
+			<?php 
+			 echo "$mensaje"; 
+			 ?>
+		</h2>
+</body>
+
+</html>
+```
