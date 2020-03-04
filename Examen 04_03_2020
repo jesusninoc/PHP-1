@@ -1,0 +1,76 @@
+############## BASE DE DATOS #################
+CREATE TABLE IF NOT EXISTS `registros` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Archivo` longblob NOT NULL,
+  `ID` varchar NOT NULL,
+  `Fecha` datetime NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+
+############# Index.php ################3
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Examen 04/03/2020</title>
+</head>
+<body>
+<?php
+
+	if(isset($_POST["subir"]) && !empty($_POST["subir"])) {
+		$Nombre = $_POST["Nombre"];
+		$Email = $_POST["Email"];
+		$Archivo = $_POST["Archivo"];
+
+	// Registra la IP desde donde se sube el archivo y la almacena junto al resto de información en la BD	
+	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+    		$ip = $_SERVER['HTTP_CLIENT_IP'];
+	} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    		$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	} else {
+    		$ip = $_SERVER['REMOTE_ADDR'];
+	}
+	include("Conexion.php");
+}
+?>
+      <h2>Subir Archivo</h2>
+	<form method="POST" name="subir">
+		<label>Nombre</label>
+			<input type="text" name="Nombre" autocomplete="off" required />
+		<label>Email</label>
+			<input type="text" name="Email" autocomplete="off" required />
+		<label></label>
+			<input type="file" name="Archivo" autocomplete="off" required />
+		<label></label>
+			<input type="submit" name="Subir" autocomplete="off" required />
+
+	</form>
+</body>
+</html>
+
+
+################ Conexion.php ####################
+
+ <?php
+ //Credenciales Mysql
+$Host = 'localhost';
+$Username = 'root';
+$Password = '';
+$dbName = 'examen_04:03_2020';
+        
+//Crear conexion con la abse de datos
+$db = new mysqli($Host, $Username, $Password, $dbName);
+        
+    // Verificar conexión
+    if($db->connect_error){
+        die("Connection failed: " . $db->connect_error);
+    }
+        
+    //Insertar en la BD
+    $insertar = $db->query("INSERT into registros (ID, IP, Archivo, Fecha) VALUES ('$ID', '$IP', '$Archivo', '$Fecha', now())");
+	// Verificar la subida del fichero
+    if($insertar){
+        echo "Archivo Subido Correctamente.";
+    }else{
+        echo "Ha fallado la subida, intentalo de nuevo.";
+    } 
+?>
